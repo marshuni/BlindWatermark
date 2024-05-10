@@ -1,7 +1,7 @@
 import sys
 from PIL import Image
 
-class LSBSteganoser:
+class DWTSteganoser:
     def Embed(self,src_img,payload_img):
         # src_img:载体图像; payload_img:水印图像;都为Image对象
         width,height = src_img.size
