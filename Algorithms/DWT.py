@@ -1,14 +1,105 @@
 import sys
 from PIL import Image
 import numpy as np
-import cv2
 from numpy.linalg import svd
 import copy
 from cv2 import dct, idct
 from pywt import dwt2, idwt2
-import multiprocessing
-import warnings
+import cv2
+import os
 
+class DWTSteganoser:
+    def Embed(self,src_img,payload_img):
+        # src_img:载体图像; payload_img:水印图像;都为Image对象
+        width,height = src_img.size
+
+        # 读取原图  
+        bwm = WaterMark(password_wm=1, password_img=1)
+        bwm.read_img(src_img)
+
+        # 读取水印
+        bwm.read_wm(payload_img)
+
+        # 返回叠加水印后的载体图像
+        steg_img = bwm.embed()
+        steg_img = Opencv_to_image(steg_img, "RGB")
+
+        print ("[+] Embedded successfully!")
+        return steg_img
+    
+    def Extract(self,src_img):
+        # src_img:载体图像;为Image对象
+        width,height = src_img.size
+        print ("[*] Input image size: %dx%d pixels." % (width, height))
+
+        # 返回水印图像
+        # 注意：算法限制，最多只能嵌入1/8倍原图尺寸的数据
+        watermark_img_shape = (int(height/8),int(width/8))
+        
+        bwm = WaterMark(password_wm=1, password_img=1)
+        # 注意需要设定水印的长宽wm_shape
+        watermark_img = bwm.extract(src_img, watermark_img_shape)
+
+        watermark_img = Opencv_to_image(watermark_img,"RGB")
+
+        print ("[+] Extracted successfully!")
+        return watermark_img
+
+
+class WaterMark:
+    def __init__(self, password_wm=1, password_img=1, block_shape=(4, 4)):
+        self.bwm_core = WaterMarkCore(password_img=password_img)
+
+        self.password_wm = password_wm
+
+        self.wm_bit = None
+        self.wm_size = 0
+
+    def read_img(self, img):
+
+        img = Image_to_opencv(img, "IMREAD_UNCHANGED")
+
+        self.bwm_core.read_img_arr(img)
+        return img
+    def read_wm(self, img):
+        wm = Image_to_opencv(img, "IMREAD_GRAYSCALE")
+
+        # 读入图片格式的水印，并转为一维 bit 格式，抛弃灰度级别
+        self.wm_bit = wm.flatten() > 128
+        self.wm_size = self.wm_bit.size
+
+        # 水印加密:
+        np.random.RandomState(self.password_wm).shuffle(self.wm_bit)
+        self.bwm_core.read_wm(self.wm_bit)
+
+    def embed(self):
+        
+        embed_img = self.bwm_core.embed()
+
+        return embed_img
+
+    def extract_decrypt(self, wm_avg):
+        wm_index = np.arange(self.wm_size)
+        np.random.RandomState(self.password_wm).shuffle(wm_index)
+        wm_avg[wm_index] = wm_avg.copy()
+        return wm_avg
+
+    def extract(self, img, wm_shape):
+
+        embed_img = Image_to_opencv(img, "IMREAD_COLOR")
+
+        self.wm_size = np.array(wm_shape).prod()
+
+        wm_avg = self.bwm_core.extract(img=embed_img, wm_shape=wm_shape)
+
+        # 解密：
+        wm = self.extract_decrypt(wm_avg=wm_avg)
+
+        # 转化为指定格式：
+        wm = 255 * wm.reshape(wm_shape[0], wm_shape[1])
+
+        return wm
+    
 class CommonPool(object):
     def map(self, func, args):
         return list(map(func, args))
@@ -22,7 +113,6 @@ class AutoPool(object):
 
     def map(self, func, args):
         return self.pool.map(func, args)
-
 
 class WaterMarkCore:
     def __init__(self, password_img=1):
@@ -133,7 +223,7 @@ class WaterMarkCore:
     
     def extract_raw(self, img):
         # 每个分块提取 1 bit 信息
-        self.read_img_arr(img=img)
+        self.read_img_arr(img)
         self.init_block_index()
 
         wm_block_bit = np.zeros(shape=(3, self.block_num))  # 3个channel，length 个分块提取的水印，全都记录下来
@@ -150,19 +240,16 @@ class WaterMarkCore:
 
     def extract_avg(self, wm_block_bit):
         # 对循环嵌入+3个 channel 求平均
-        wm_avg = np.zeros(shape=(wm_block_bit.shape[1]))
-        # print("#")
-        # print(wm_avg.shape)
-        # print(wm_block_bit.shape)
-        for i in range(0,wm_block_bit.shape[1]):
-            wm_avg[i] = wm_block_bit[:, i].mean()
+        wm_avg = np.zeros(shape=self.wm_size)
+        for i in range(self.wm_size):
+            wm_avg[i] = wm_block_bit[:, i::self.wm_size].mean()
         return wm_avg
 
     def extract(self, img, wm_shape):
         self.wm_size = np.array(wm_shape).prod()
+
         # 提取每个分块埋入的 bit：
         wm_block_bit = self.extract_raw(img=img)
-        print(wm_block_bit.shape)
         # 做平均：
         wm_avg = self.extract_avg(wm_block_bit)
         return wm_avg
@@ -172,111 +259,20 @@ def random_strategy1(seed, size, block_shape):
         .random(size=(size, block_shape)) \
         .argsort(axis=1)
 
+def Image_to_opencv(img, mode):
+    img.save("A.png")
+    if mode == "IMREAD_UNCHANGED":
+        img = cv2.imread("A.png", cv2.IMREAD_UNCHANGED)
+    elif mode == "IMREAD_GRAYSCALE":
+        img = cv2.imread("A.png", cv2.IMREAD_GRAYSCALE)
+    elif mode == "IMREAD_COLOR":
+        img = cv2.imread("A.png", cv2.IMREAD_COLOR)
+    os.remove("A.png")
+    return img
 
-class WaterMark:
-    def __init__(self, password_wm=1, password_img=1, block_shape=(4, 4)):
-        self.bwm_core = WaterMarkCore(password_img=password_img)
-
-        self.password_wm = password_wm
-
-        self.wm_bit = None
-        self.wm_size = 0
-
-    def read_img(self, img):
-
-        # 从文件读入图片
-        img = cv2.cvtColor(np.array(img),cv2.COLOR_RGB2BGR)
-
-        self.bwm_core.read_img_arr(img=img)
-        return img
-
-    def read_wm(self, wm):
-        wm = np.array(wm)
-        # 将二值化图像转换为灰度图像
-        wm = np.where(wm > 0, 255, 0).astype(np.uint8)
-        wm = cv2.cvtColor(wm,cv2.IMREAD_GRAYSCALE)
-
-        # 读入图片格式的水印，并转为一维 bit 格式，抛弃灰度级别
-        self.wm_bit = wm.flatten() > 0
-
-        self.wm_size = self.wm_bit.size
-
-        # 水印加密:
-        np.random.RandomState(self.password_wm).shuffle(self.wm_bit)
-
-        self.bwm_core.read_wm(self.wm_bit)
-
-    def embed(self, filename=None):
-        
-        embed_img = self.bwm_core.embed()
-
-        cv2.imwrite(filename=filename, img=embed_img)
-        return embed_img
-
-    def extract_decrypt(self, wm_avg):
-        wm_index = np.arange(wm_avg.size)
-        np.random.RandomState(self.password_wm).shuffle(wm_index)
-        wm_avg[wm_index] = wm_avg.copy()
-        return wm_avg
-
-    def extract(self, embed_img=None, wm_shape=None):
-
-        # embed_img = cv2.imread(filename, flags=cv2.IMREAD_COLOR)
-        embed_img = self.read_img(embed_img)
-        self.wm_size = np.array(wm_shape).prod()
-        
-        wm_avg = self.bwm_core.extract(img=embed_img, wm_shape=wm_shape)
-        print(wm_avg.shape)
-        # 解密：
-        wm = self.extract_decrypt(wm_avg=wm_avg)
-
-        # 转化为指定格式：
-        wm = 255 * wm.reshape(wm_shape[0], wm_shape[1])
-        wm = 255*wm
-
-        return wm
-
-class DWTSteganoser:
-    def Embed(self,src_img,payload_img):
-        # src_img:载体图像; payload_img:水印图像;都为Image对象
-
-        bwm = WaterMark(password_wm=1, password_img=1)
-        
-        # 读取原图
-        bwm.read_img(src_img)
-
-        # 读取水印
-        bwm.read_wm(payload_img)
-
-        # 打上盲水印
-        steg_op = bwm.embed('embedded.png')
-        
-        steg_img = cv2.cvtColor(steg_op, cv2.COLOR_BGR2RGB)
-        steg_img = np.array(steg_img,dtype=np.uint8)
-        steg_img = Image.fromarray(steg_img)
-
-        print ("[+] Embedded successfully!")
-        return steg_img
+def Opencv_to_image(ope, mode):
+    cv2.imwrite('A.png',ope)
+    ope = Image.open('A.png').convert(mode)
+    os.remove('A.png')
+    return ope
     
-    def Extract(self,src_img):
-        # src_img:载体图像;为Image对象
-        width,height = src_img.size
-        print ("[*] Input image size: %dx%d pixels." % (width, height))
-        
-        # 返回水印图像
-        # 注意：算法限制，最多只能嵌入1/8倍原图尺寸的数据
-        watermark_op = Image.new('RGB',(int(width/8),int(height/8)))
-        wm_shape =  cv2.cvtColor(np.asarray(watermark_op),cv2.IMREAD_GRAYSCALE).shape
-        
-        # %% 解水印
-        bwm1 = WaterMark(password_wm=1, password_img=1)
-
-        # 注意需要设定水印的长宽wm_shape
-        watermark_op = bwm1.extract(src_img, wm_shape=wm_shape)
-        steg_img = cv2.convertScaleAbs(watermark_op, alpha=(255/65535.0))
-        steg_img = cv2.cvtColor(steg_img,cv2.COLOR_BGR2RGB)
-        steg_img = np.array(steg_img,dtype=np.uint8)
-        print(steg_img.shape)
-        steg_img = Image.fromarray(steg_img)
-        print ("[+] Extracted successfully!")
-        return steg_img

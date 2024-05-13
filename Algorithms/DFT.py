@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
 import matplotlib.pyplot as plt
 
-debug=0
+debug=1
 class DFTSteganoser:
     def Embed(self, src_img: Image.Image, payload: Image.Image):
         src_img = np.array(src_img.convert("RGB"))
@@ -10,7 +10,7 @@ class DFTSteganoser:
 
         # 输出原始图像
         if debug:
-            plt.subplot(231), plt.imshow(src_img), \
+            plt.subplot(221), plt.imshow(src_img), \
                 plt.title('Image_Raw')
             plt.xticks([]), plt.yticks([])
         
@@ -24,7 +24,7 @@ class DFTSteganoser:
 
         # 输出处理后的水印
         if debug:
-            plt.subplot(232), plt.imshow(watermark), \
+            plt.subplot(222), plt.imshow(watermark), \
                 plt.title('Watermark')
             plt.xticks([]), plt.yticks([])
         
@@ -55,7 +55,7 @@ class DFTSteganoser:
             freq = np.log(np.abs(fshift_wm))
             freq = np.array((freq-np.min(freq))*255 / (np.max(freq)-np.min(freq)),dtype=np.int8)
             s = Image.fromarray(freq,"RGB")
-            plt.subplot(233), plt.imshow(s), \
+            plt.subplot(223), plt.imshow(s), \
                 plt.title('Frequency Domain')
             plt.xticks([]), plt.yticks([])
 
@@ -69,7 +69,7 @@ class DFTSteganoser:
         steg_img = Image.fromarray(np.uint8(steg_img))
 
         if debug:
-            plt.subplot(234), plt.imshow(steg_img), \
+            plt.subplot(224), plt.imshow(steg_img), \
                 plt.title('Image_Watermark')
             plt.xticks([]), plt.yticks([])
         if debug:

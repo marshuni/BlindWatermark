@@ -36,8 +36,8 @@ def hide(img_file, payload_file, mode):
         pwidth = width
         pheight = int(height*0.45)
     elif mode=='DWT':
-        pwidth = int(width/2)
-        pheight = int(height/2)
+        pwidth = int(width/8)
+        pheight = int(height/8)
     payload_img = Converter().Text2Pic(payload_text,pwidth,pheight)
     
     # print("[*] Please preview the payload image and then close tha window.")
