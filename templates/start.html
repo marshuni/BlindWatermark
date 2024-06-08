@@ -1,0 +1,75 @@
+<!-- 载入静态文件 -->
+{% load static %}
+
+<!DOCTYPE html>
+<!-- 网站主语言 -->
+<html lang="zh-cn">
+
+<head>
+    <!-- 网站采用的字符编码 -->
+    <meta charset="utf-8">
+    <!-- 预留网站标题的位置 -->
+    <title>BlindWatermark</title>
+    <!-- 引入bootstrap的css文件 -->
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <!-- 引入自己的css文件 -->
+    <link rel="stylesheet" href="{% static 'styles-start.css' %}">
+</head>
+
+<body>
+    <div class="background-container">
+        <!-- 定义导航栏 -->
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <!-- 导航栏标志 -->
+                <a class="navbar-brand" href="/">BlindWatermark</a>
+                <!-- 导航入口 -->
+                <div>
+                    <ul class="navbar-nav">
+                    <!-- 条目 -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">About</a>
+                    </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="container d-flex justify-content-center align-items-center" style="height: 80vh;">
+            <form action="/index" method="get">
+                <div class="row">
+                    <div class="col-10">
+                        <input type="text" class="form-control" name="chemicalEquationSrc" placeholder="上传图片">
+                    </div> 
+                    <!-- {% csrf_token %} -->
+                    <div class="col-2">
+                        <button type="submit" class="btn btn-primary ">Start</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+            <!-- 页面内容 -->
+    </div>
+
+    <script>
+        var backgroundContainer = document.querySelector('.background-container');
+
+        function startAnimation() {
+            backgroundContainer.style.animationPlayState = 'running';
+        }
+        function stopAnimation() {
+            backgroundContainer.style.animationPlayState = 'paused';
+        }
+        // 在特定时间点开始动画
+        setTimeout(startAnimation, 1000); // 2秒后开始动画
+    </script>
+
+    <!-- bootstrap.js 依赖 jquery.js 和popper.js，因此在这里引入 -->
+    <script src="{% static 'jquery/jquery-3.7.0.min.js' %}"></script>
+    <script src="{% static 'popper/popper.min.js' %}"></script>    
+    <!-- 引入bootstrap的js文件 -->
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+</body>
+
+</html>

@@ -1,0 +1,378 @@
+{% extends 'base.html'%}
+
+{% block title %}
+    Chem. Eq. Analysis
+{% endblock title %}
+
+<!-- 写入 base.html 中定义的 content -->
+{% block content %}
+
+<!-- 在这里写详细页面 -->
+<div class="container">
+    <form action="/index" method="get">
+        <div class="row mt-4">
+            <div class="col-3">
+                <h5 class="vertical-center text-right">键入你的化学方程式：</h5>
+            </div>
+            <div class="col-6">
+                <input type="text" class="form-control" value="{{chemicalEquationSrc}}" name="chemicalEquationSrc" placeholder="Co+2Fe==CoFFee">
+            </div> 
+            <!-- {% csrf_token %} -->
+            <div class="col-3">
+                <button type="submit" class="btn btn-primary " style="float:left">分析</button>
+            </div>
+        </div>
+    </form>
+    <div class="row mt-2">
+        <div class="col">
+            {% if flag.correct %}
+                <p class="chemical-equation-correct">
+                    {{chemicalEquationSrc}}
+                </p>
+            {% else %}
+                <p class="chemical-equation-wrong">
+                    {{chemicalEquationSrc}}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+    {% if flag.amend and not flag.correct %}
+    <div class="row mt-2">
+        <div class="col">
+            <p class="chemical-equation-correct">
+                {{chemicalEquationAns}}
+                {{flag.amend}}
+            </p>
+        </div>
+    </div>
+    {% endif %}
+        
+    <div class="row mt-2">
+        <div class="col">
+            <div class="card mt-2">
+                <div class="card-header">
+                    <a class="card-link" data-toggle="collapse" href="#collapse_output_lex">
+                        词法分析-单词
+                    </a>
+                </div>
+                <div id="collapse_output_lex" class="collapse show">
+                    <div class="card-body pre-scrollable">
+                        {% for line in output_lex %}
+                            <p style="line-height:1.2">{{line}}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-2">
+                <div class="card-header">
+                    <a class="collapsed card-link" data-toggle="collapse" href="#output_symtab">
+                        词法分析-符号表
+                    </a>
+                </div>
+                <div id="output_symtab" class="collapse">
+                    <div class="card-body">
+                        <table class="gridtable">
+                            {%for row in output_symtab %}
+                                <tr align=center>
+                                    {%for elem in row %}
+                                        <td>{{elem}}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <div class="col">
+            <div class="card mt-2">
+                <div class="card-header">
+                    <a class="collapsed card-link" data-toggle="collapse" href="#output_grammar">
+                        语法分析-语法
+                    </a>
+                </div>
+                <div id="output_grammar" class="collapse show">
+                    <div class="card-body">
+                        <pre class="pre-scrollable" style="background-color: #fffef0">{% for line in output_grammar %}{{line}}{% endfor %}</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-2">
+                <div class="card-header">
+                    <a class="collapsed card-link" data-toggle="collapse" href="#collapse_output_parse">
+                        语法分析-过程
+                    </a>
+                </div>
+                <div id="collapse_output_parse" class="collapse">
+                    <div class="card-body">
+                        <pre class="pre-scrollable" style="background-color: #fffef0">{% for line in output_parse %}{{line}}{% endfor %}</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-2">
+                <div class="card-header">
+                    <a class="collapsed card-link" data-toggle="collapse" href="#collapse_inter_cod">
+                        语法分析-分析表
+                    </a>
+                </div>
+                <div id="collapse_inter_cod" class="collapse">
+                    <div class="card-body pre-scrollable">
+                        <table class="gridtable">
+                            <tr align=center>
+                                <td rowspan=2 colspan=1><b>状态</b></td>
+                                <td rowspan=1 colspan=8><b>ACTION</b></td>
+                                <td rowspan=1 colspan=10><b>GOTO</b></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>ELEMENT</b></td><td><b>INTEGER</b></td><td><b>EQUAL</b></td>
+                                <td><b>PLUS</b></td><td><b>LPAREN</b></td><td><b>RPAREN</b></td><td><b>POINT</b></td><td><b>$end</b></td>
+                                <td><b>S</b></td><td><b>E1</b></td><td><b>E2</b></td><td><b>E</b></td><td><b>W</b></td>
+                                <td><b>T</b></td><td><b>C</b></td><td><b>F</b></td><td><b>X</b></td><td><b>Y</b></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>0</b></td>
+                                <td>s1</td><td>s2</td><td></td>
+                                <td></td><td>s3</td><td></td><td></td><td></td>
+                                <td>4</td><td>5</td><td></td><td>6</td><td>7</td>
+                                <td></td><td>8</td><td>9</td><td>10</td><td>11</td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>1</b></td>
+                                <td>r17</td><td>r17</td><td>r17</td>
+                                <td>r17</td><td>r17</td><td>r17</td><td>r17</td><td>r17</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>2</b></td>
+                                <td>r12</td><td>r12</td><td>r12</td>
+                                <td>r12</td><td>r12</td><td>r12</td><td>r12</td><td>r12</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>3</b></td>
+                                <td>s1</td><td></td><td></td>
+                                <td></td><td>s3</td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td>12</td><td>10</td><td>11</td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>4</b></td>
+                                <td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td>s13</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>5</b></td>
+                                <td></td><td></td><td>s14</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>6</b></td>
+                                <td>r2</td><td>r2</td><td>r2</td>
+                                <td>r2</td><td>r2</td><td>r2</td><td>r2</td><td>r2</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>7</b></td>
+                                <td>r4</td><td>r4</td><td>r4</td>
+                                <td>s15</td><td>r4</td><td>r4</td><td>r4</td><td>r4</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>8</b></td>
+                                <td>s1</td><td></td><td></td>
+                                <td></td><td>s3</td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td>16</td><td>10</td><td>11</td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>9</b></td>
+                                <td>r9</td><td>r9</td><td>r9</td>
+                                <td>r9</td><td>r9</td><td>r9</td><td>s17</td><td>r9</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>10</b></td>
+                                <td>s1</td><td>r13</td><td>r13</td>
+                                <td>r13</td><td>s3</td><td>r13</td><td>r13</td><td>r13</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td>18</td><td>10</td><td>11</td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>11</b></td>
+                                <td>r15</td><td>s19</td><td>r15</td>
+                                <td>r15</td><td>r15</td><td>r15</td><td>r15</td><td>r15</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>12</b></td>
+                                <td></td><td></td><td></td>
+                                <td></td><td></td><td>s20</td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>13</b></td>
+                                <td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td>acc</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>14</b></td>
+                                <td>s1</td><td>s2</td><td></td>
+                                <td></td><td>s3</td><td></td><td></td><td></td>
+                                <td></td><td></td><td>21</td><td>22</td><td>7</td>
+                                <td></td><td>8</td><td>9</td><td>10</td><td>11</td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>15</b></td>
+                                <td>s1</td><td>s2</td><td></td>
+                                <td></td><td></td><td>s3</td><td></td><td></td>
+                                <td></td><td></td><td></td><td>23</td><td>7</td>
+                                <td></td><td>8</td><td>9</td><td>10</td><td>11</td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>16</b></td>
+                                <td>r7</td><td>r7</td><td>r7</td>
+                                <td>r7</td><td>r7</td><td>r7</td><td>s24</td><td>r7</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>17</b></td>
+                                <td>s1</td><td>s25</td><td></td>
+                                <td></td><td></td><td>s3</td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td>26</td><td></td><td>27</td><td>10</td><td>11</td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>18</b></td>
+                                <td>r14</td><td>r14</td><td>r14</td>
+                                <td>r14</td><td>r14</td><td>r14</td><td>r14</td><td>r14</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>19</b></td>
+                                <td>r16</td><td>r16</td><td>r16</td>
+                                <td>r16</td><td>r16</td><td>r16</td><td>r16</td><td>r16</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>20</b></td>
+                                <td>r18</td><td>r18</td><td>r18</td>
+                                <td>r18</td><td>r18</td><td>r18</td><td>r18</td><td>r18</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>21</b></td>
+                                <td>r1</td><td>r1</td><td>r1</td>
+                                <td>r1</td><td>r1</td><td>r1</td><td>r1</td><td>r1</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>22</b></td>
+                                <td>r3</td><td>r3</td><td>r3</td>
+                                <td>r3</td><td>r3</td><td>r3</td><td>r3</td><td>r3</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>23</b></td>
+                                <td>r5</td><td>r5</td><td>r5</td>
+                                <td>r5</td><td>r5</td><td>r5</td><td>r5</td><td>r5</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>24</b></td>
+                                <td>s1</td><td>s25</td><td></td>
+                                <td></td><td>s3</td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td>28</td><td></td><td>27</td><td>10</td><td>11</td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>25</b></td>
+                                <td>s1</td><td></td><td></td>
+                                <td></td><td>s3</td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td>29</td><td>10</td><td>11</td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>26</b></td>
+                                <td>r8</td><td>r8</td><td>r8</td>
+                                <td>r8</td><td>r8</td><td>r8</td><td>r8</td><td>r8</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>27</b></td>
+                                <td>r11</td><td>r11</td><td>r11</td>
+                                <td>r11</td><td>r11</td><td>r11</td><td>r11</td><td>r11</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>28</b></td>
+                                <td>r6</td><td>r6</td><td>r6</td>
+                                <td>r6</td><td>r6</td><td>r6</td><td>r6</td><td>r6</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                            <tr align=center>
+                                <td><b>29</b></td>
+                                <td>r10</td><td>r10</td><td>r10</td>
+                                <td>r10</td><td>r10</td><td>r10</td><td>r10</td><td>r10</td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                                <td></td><td></td><td></td><td></td><td></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card mt-2">
+                <div class="card-header">
+                    <a class="collapsed card-link" data-toggle="collapse" href="#collapse_output_seman">
+                        语义分析-结果
+                    </a>
+                </div>
+                <div id="collapse_output_seman" class="collapse show">
+                    <div class="card-body">
+                        {% for line in output_seman %}
+                            <p style="line-height:1.2">{{line}}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-2">
+                <div class="card-header">
+                    <a class="collapsed card-link" data-toggle="collapse" href="#collapse_inter_code">
+                        语义分析-中间代码
+                    </a>
+                </div>
+                <div id="collapse_inter_code" class="collapse">
+                    <div class="card-body">
+                        <pre class="pre-scrollable" style="background-color: #fffef0">{% for line in inter_code %}{{line}}{% endfor %}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

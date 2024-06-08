@@ -1,0 +1,64 @@
+.vertical-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%; /* 元素占满整个高度 */
+}
+
+.chemical-equation-wrong {
+
+    display: flex;
+    justify-content: center;
+    color: hsl(30, 90%, 30%) ;
+    background: linear-gradient(111.4deg, rgb(238, 113, 113) 1%, rgb(246, 215, 148) 58%);
+    border-radius: 0.5em;
+    font-weight: bold;
+    font-size: 200%;
+    text-align: center;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+.chemical-equation-correct {
+
+    display: flex;
+    justify-content: center;
+    color: SlateBlue;
+    background: linear-gradient(to right, #9fe1fa, #f4edc9);
+    border-radius: 0.5em;
+    font-weight: bold;
+    font-size: 200%;
+    text-align: center;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+table.gridtable {
+    font-family: verdana,arial,sans-serif;
+    font-size:11px;
+    color:#333333;
+    border-width: 1px;
+    border-color: #666666;
+    border-collapse: collapse;
+}
+table.gridtable th {
+    border-width: 1px;
+    padding: 2px;
+    border-style: solid;
+    border-color: #666666;
+    background-color: #dedede;
+}
+table.gridtable td {
+    border-width: 1px;
+    padding: 2px;
+    border-style: solid;
+    border-color: #666666;
+    background-color: #ffffff;
+}
